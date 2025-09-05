@@ -1,0 +1,312 @@
+[
+  {
+    "id": "TC001",
+    "title": "Email Magic Link Authentication Success",
+    "description": "Verify that a user can successfully authenticate using an email magic link and is redirected to the dashboard.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Enter a valid email address."
+      },
+      {
+        "type": "action",
+        "description": "Submit the magic link request."
+      },
+      {
+        "type": "action",
+        "description": "Check the email inbox and click the magic link."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user is authenticated and redirected to the dashboard."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Google OAuth Authentication Success",
+    "description": "Ensure user can authenticate using Google OAuth and successfully arrive at their dashboard.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the login page."
+      },
+      {
+        "type": "action",
+        "description": "Click on the Google OAuth login button."
+      },
+      {
+        "type": "action",
+        "description": "Complete Google OAuth flow with valid credentials."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm redirection to the dashboard with user groups visible."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "OAuth Callback Redirect Handling",
+    "description": "Verify the OAuth callback endpoint correctly processes the authentication code and redirects users.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Simulate an OAuth callback request with a valid code parameter."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify HTTP 302 redirect response is sent to the dashboard."
+      },
+      {
+        "type": "action",
+        "description": "Simulate an OAuth callback request with a missing or invalid code parameter."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error handling page is displayed for authentication failure."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Dashboard Loads User Groups",
+    "description": "Verify dashboard loads and correctly displays all groups the user is a member of.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user with multiple groups."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the dashboard page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all user groups are listed with accurate names and details."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Dashboard Redirects Unauthorized Users",
+    "description": "Verify that unauthenticated users navigating to the dashboard are redirected to the login page.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to access the dashboard URL without authentication."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify redirection to the login page."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Create New Expense Splitting Group",
+    "description": "Ensure that a user can successfully create a new expense splitting group with valid input.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and navigate to the dashboard."
+      },
+      {
+        "type": "action",
+        "description": "Click the 'Create Group' button."
+      },
+      {
+        "type": "action",
+        "description": "Enter valid group name and optional description."
+      },
+      {
+        "type": "action",
+        "description": "Submit the form to create the group."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new group appears in the dashboard list."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Access Specific Group Details",
+    "description": "Verify that a group member can access the group's detail page without errors.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a member of an existing group."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the group's detail page via dashboard."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify group details load correctly with accurate information."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Prevent Unauthorized Access to Group Balances",
+    "description": "Ensure users who are not members of a group cannot access its balance details and receive a 403 error.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user not belonging to a specific group."
+      },
+      {
+        "type": "action",
+        "description": "Request the balances page for that group."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the system returns HTTP 403 Forbidden error."
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Balance Calculations Accuracy",
+    "description": "Verify that the balance calculation correctly computes owed amounts between group members.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set up a group with multiple members and add multiple expenses with different payers and amounts."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the group balances page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the displayed balance summary accurately reflects the owed amounts based on input expenses."
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "UI Component Rendering Consistency",
+    "description": "Verify that reusable UI components such as buttons, cards, inputs, and labels render correctly across multiple pages.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate across key pages: login, dashboard, group page, balance page."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all UI components render consistently and follow the design guidelines."
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Form Validation on Add Expense and Group Creation",
+    "description": "Verify that forms for adding expenses and creating groups have proper validation, including required fields and input formats.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to the group creation form and submit with empty or invalid data."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate validation error messages are displayed and form submission is blocked."
+      },
+      {
+        "type": "action",
+        "description": "Navigate to the add expense form with missing fields or incorrect data types."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation errors prevent submission and instruct the user properly."
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Error Page Displays on Authentication Failure",
+    "description": "Verify the error handling page displays appropriately when authentication fails or an invalid login attempt is made.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt to login with invalid credentials or corrupted magic link."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the authentication error page is displayed with correct messaging."
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "UI Consistency During Navigation and Authentication States",
+    "description": "Ensure UI components maintain visual and functional consistency during login transitions, dashboard loading, and group navigation.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate through login, authentication callback, dashboard, and group pages."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify smooth transitions, consistent component style, and no visual glitches."
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Form Reset Behavior After Successful Submission",
+    "description": "Verify that forms for creating groups and adding expenses reset properly after successful submission.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Submit the create group form with valid inputs."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the form fields are cleared and ready for a new entry."
+      },
+      {
+        "type": "action",
+        "description": "Submit the add expense form with valid inputs."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the add expense form is cleared after submission."
+      }
+    ]
+  }
+]

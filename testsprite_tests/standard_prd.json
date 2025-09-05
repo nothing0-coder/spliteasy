@@ -1,0 +1,239 @@
+{
+  "meta": {
+    "project": "SplitEasy",
+    "date": "2025-09-05",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "SplitEasy is a modern web application designed to simplify group expense management by allowing users to create groups, track expenses, and calculate balances effortlessly. It integrates secure authentication and provides a sleek, user-friendly interface for effective collaboration.",
+  "core_goals": [
+    "Enable secure user authentication using email magic links and Google OAuth.",
+    "Allow users to create and manage expense splitting groups easily.",
+    "Provide accurate calculation and display of balances for group members.",
+    "Implement reusable and accessible UI components for a consistent user experience.",
+    "Ensure smooth user flow from authentication through group management to balance overview."
+  ],
+  "key_features": [
+    "User Authentication with email magic links and Google OAuth for seamless login.",
+    "Group Management to create, view, and manage expense splitting groups.",
+    "Balance Calculation functionality to compute and display the owed amounts among group members.",
+    "Reusable UI component library built with Radix UI and Tailwind CSS, including buttons, cards, inputs, and labels.",
+    "OAuth callback handling to securely redirect users after authentication.",
+    "Dashboard for users to view their groups and relevant information.",
+    "Error handling pages for authentication issues."
+  ],
+  "user_flow_summary": [
+    "User visits the login page and signs in using email magic link or Google OAuth.",
+    "Upon successful login, user is redirected to the dashboard displaying their groups.",
+    "User selects or creates a group for expense management.",
+    "Within the group, users can view detailed balances showing who owes whom.",
+    "Users interact with forms to add expenses and manage group members.",
+    "All pages utilize consistent UI components for a uniform look and feel."
+  ],
+  "validation_criteria": [
+    "Users can successfully authenticate via email magic link and Google OAuth.",
+    "Dashboard loads and displays user groups accurately upon login.",
+    "Users can create and access specific groups without errors.",
+    "Balance calculations are correct and reflect group's expense data.",
+    "UI components render correctly and consistently across pages.",
+    "OAuth callback redirects correctly post-authentication.",
+    "Unauthorized access to group balances is prevented.",
+    "Error pages display appropriately when authentication fails."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "Next.js",
+      "React",
+      "Supabase",
+      "Tailwind CSS",
+      "Radix UI",
+      "React Hook Form",
+      "Zod",
+      "Framer Motion",
+      "Lucide React"
+    ],
+    "features": [
+      {
+        "name": "Authentication",
+        "description": "User authentication system with email magic links and Google OAuth",
+        "files": [
+          "src/features/auth/components/LoginForm.tsx",
+          "src/app/auth/callback/route.ts",
+          "src/app/(auth)/login/page.tsx",
+          "src/app/(auth)/auth-code-error/page.tsx",
+          "src/lib/supabase/client.ts",
+          "src/lib/supabase/server.ts"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Authentication API",
+            "version": "1.0.0",
+            "description": "Authentication endpoints for SplitEasy"
+          },
+          "paths": {
+            "/auth/callback": {
+              "get": {
+                "summary": "OAuth callback handler",
+                "description": "Handles OAuth callback from Supabase authentication",
+                "parameters": [
+                  {
+                    "name": "code",
+                    "in": "query",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "302": {
+                    "description": "Redirect to dashboard after successful authentication"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Group Management",
+        "description": "Create and manage expense splitting groups",
+        "files": [
+          "src/app/(dashboard)/page.tsx",
+          "src/app/(dashboard)/groups/[groupId]/balances/page.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Group Management API",
+            "version": "1.0.0",
+            "description": "Group management endpoints for SplitEasy"
+          },
+          "paths": {
+            "/": {
+              "get": {
+                "summary": "Get user dashboard",
+                "description": "Retrieve user's groups and dashboard information",
+                "responses": {
+                  "200": {
+                    "description": "Dashboard page with user groups",
+                    "content": {
+                      "text/html": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "302": {
+                    "description": "Redirect to login if not authenticated"
+                  }
+                }
+              }
+            },
+            "/groups/{groupId}": {
+              "get": {
+                "summary": "Get group details",
+                "description": "Retrieve specific group information",
+                "parameters": [
+                  {
+                    "name": "groupId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Group details page",
+                    "content": {
+                      "text/html": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "Balance Calculation",
+        "description": "Calculate and display expense balances for group members",
+        "files": [
+          "src/features/groups/actions/getGroupBalances.ts",
+          "src/features/groups/components/GroupBalances.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "Balance Calculation API",
+            "version": "1.0.0",
+            "description": "Balance calculation endpoints for SplitEasy"
+          },
+          "paths": {
+            "/groups/{groupId}/balances": {
+              "get": {
+                "summary": "Get group balances",
+                "description": "Calculate and retrieve balance information for all group members",
+                "parameters": [
+                  {
+                    "name": "groupId",
+                    "in": "path",
+                    "required": true,
+                    "schema": {
+                      "type": "string"
+                    }
+                  }
+                ],
+                "responses": {
+                  "200": {
+                    "description": "Group balances page",
+                    "content": {
+                      "text/html": {
+                        "schema": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "302": {
+                    "description": "Redirect to login if not authenticated"
+                  },
+                  "403": {
+                    "description": "User is not a member of this group"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "name": "UI Components",
+        "description": "Reusable UI components built with Radix UI and Tailwind CSS",
+        "files": [
+          "src/components/ui/button.tsx",
+          "src/components/ui/card.tsx",
+          "src/components/ui/input.tsx",
+          "src/components/ui/label.tsx"
+        ],
+        "api_doc": {
+          "openapi": "3.0.0",
+          "info": {
+            "title": "UI Components",
+            "version": "1.0.0",
+            "description": "Reusable UI component library"
+          },
+          "paths": {}
+        }
+      }
+    ]
+  }
+}

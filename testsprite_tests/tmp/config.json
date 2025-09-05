@@ -1,0 +1,18 @@
+{
+  "status": "init",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "spliteasy",
+    "projectPath": "C:\\Users\\ntena\\spliteasy",
+    "testIds": [],
+    "additionalInstruction": "Test the SplitEasy expense splitting application with focus on authentication, group management, and balance calculation features",
+    "envs": {
+      "API_KEY": "sk-user-Kan-rQKCBOjStYJZlZdqZO4bmN9tgmiYEGM9YR88wIFnXBtt58UnzZUBn-FuUbZecDwfO6P7v7PH2oSrfzBtC57hVa8HhOActByOo8x3yc5F5WE0ooS1FNCEoPlXOq-fYNA"
+    }
+  },
+  "proxy": "http://af8d552f-5f04-4c30-bc56-493e80da2a1a:EMy8XRwW67kLHAmmNFboZp4vKZFCi1dF@tun.testsprite.com:8080",
+  "serverPort": 54535
+}

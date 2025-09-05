@@ -1,0 +1,197 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "Next.js",
+    "React",
+    "Supabase",
+    "Tailwind CSS",
+    "Radix UI",
+    "React Hook Form",
+    "Zod",
+    "Framer Motion",
+    "Lucide React"
+  ],
+  "features": [
+    {
+      "name": "Authentication",
+      "description": "User authentication system with email magic links and Google OAuth",
+      "files": [
+        "src/features/auth/components/LoginForm.tsx",
+        "src/app/auth/callback/route.ts",
+        "src/app/(auth)/login/page.tsx",
+        "src/app/(auth)/auth-code-error/page.tsx",
+        "src/lib/supabase/client.ts",
+        "src/lib/supabase/server.ts"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Authentication API",
+          "version": "1.0.0",
+          "description": "Authentication endpoints for SplitEasy"
+        },
+        "paths": {
+          "/auth/callback": {
+            "get": {
+              "summary": "OAuth callback handler",
+              "description": "Handles OAuth callback from Supabase authentication",
+              "parameters": [
+                {
+                  "name": "code",
+                  "in": "query",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "responses": {
+                "302": {
+                  "description": "Redirect to dashboard after successful authentication"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Group Management",
+      "description": "Create and manage expense splitting groups",
+      "files": [
+        "src/app/(dashboard)/page.tsx",
+        "src/app/(dashboard)/groups/[groupId]/balances/page.tsx"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Group Management API",
+          "version": "1.0.0",
+          "description": "Group management endpoints for SplitEasy"
+        },
+        "paths": {
+          "/": {
+            "get": {
+              "summary": "Get user dashboard",
+              "description": "Retrieve user's groups and dashboard information",
+              "responses": {
+                "200": {
+                  "description": "Dashboard page with user groups",
+                  "content": {
+                    "text/html": {
+                      "schema": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "302": {
+                  "description": "Redirect to login if not authenticated"
+                }
+              }
+            }
+          },
+          "/groups/{groupId}": {
+            "get": {
+              "summary": "Get group details",
+              "description": "Retrieve specific group information",
+              "parameters": [
+                {
+                  "name": "groupId",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Group details page",
+                  "content": {
+                    "text/html": {
+                      "schema": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Balance Calculation",
+      "description": "Calculate and display expense balances for group members",
+      "files": [
+        "src/features/groups/actions/getGroupBalances.ts",
+        "src/features/groups/components/GroupBalances.tsx"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Balance Calculation API",
+          "version": "1.0.0",
+          "description": "Balance calculation endpoints for SplitEasy"
+        },
+        "paths": {
+          "/groups/{groupId}/balances": {
+            "get": {
+              "summary": "Get group balances",
+              "description": "Calculate and retrieve balance information for all group members",
+              "parameters": [
+                {
+                  "name": "groupId",
+                  "in": "path",
+                  "required": true,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Group balances page",
+                  "content": {
+                    "text/html": {
+                      "schema": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "403": {
+                  "description": "User is not a member of this group"
+                },
+                "302": {
+                  "description": "Redirect to login if not authenticated"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "UI Components",
+      "description": "Reusable UI components built with Radix UI and Tailwind CSS",
+      "files": [
+        "src/components/ui/button.tsx",
+        "src/components/ui/card.tsx",
+        "src/components/ui/input.tsx",
+        "src/components/ui/label.tsx"
+      ],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "UI Components",
+          "version": "1.0.0",
+          "description": "Reusable UI component library"
+        },
+        "paths": {}
+      }
+    }
+  ]
+}
