@@ -43,25 +43,43 @@ export default function CreateGroupPage() {
       return
     }
 
-
     setIsLoading(true)
     setError(null)
 
     try {
-      const group = await createGroup(
-        formData.name.trim()
-      )
+      console.log('Submitting group creation:', { name: formData.name.trim() })
+      const group = await createGroup(formData.name.trim())
+      console.log('Group created successfully:', group)
       
       // Success! Show toast and redirect to dashboard
       toast.success(`Group "${group.name}" created successfully!`)
       router.push('/dashboard')
     } catch (err) {
-      console.error('Error creating group:', err)
+      console.error('Group creation failed:', err)
       
       if (err instanceof GroupError) {
-        setError(err.message)
+        // Show specific error messages based on error code
+        switch (err.code) {
+          case 'UNAUTHENTICATED':
+            setError('Please log in to create groups.')
+            break
+          case 'DUPLICATE_NAME':
+            setError('A group with this name already exists. Please choose a different name.')
+            break
+          case 'PERMISSION_DENIED':
+            setError('Permission denied. Please check your account permissions.')
+            break
+          case 'CONNECTION_ERROR':
+            setError('Unable to connect to the database. Please try again later.')
+            break
+          case 'RLS_ERROR':
+            setError('Security policy error. Please contact support if this persists.')
+            break
+          default:
+            setError(err.message || 'Failed to create group. Please try again.')
+        }
       } else {
-        setError('Failed to create group. Please try again.')
+        setError('An unexpected error occurred. Please try again.')
       }
     } finally {
       setIsLoading(false)

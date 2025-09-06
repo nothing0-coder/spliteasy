@@ -1,81 +1,127 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createGroupServer, getGroupsServer, GroupServerError } from '@/features/groups/api/groups-server'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import type { Database } from '@/types/database.types'
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json()
-    const { name } = body
+// Tell Next.js not to statically optimize this route
+export const dynamic = 'force-dynamic' // disables static prerendering
 
-    // Validate input
-    if (!name || typeof name !== 'string' || name.trim().length === 0) {
-      return NextResponse.json(
-        { error: 'Group name is required' }, 
-        { status: 400 }
-      )
+export const runtime = 'edge' // (optional) runs on the Edge runtime
+
+// Helper function to create Supabase client with cookie support for API routes
+async function createServerSupabaseClient() {
+  const cookieStore = await cookies()
+  
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            // The `set` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {
+            // The `delete` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
     }
-
-    // Use the server function to create group
-    const group = await createGroupServer(name.trim())
-
-    // Add the creator as a member of the group
-    const supabase = await import('@/lib/supabase/server').then(m => m.getSupabaseServerClient())
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (user) {
-      const { error: memberError } = await supabase
-        .from('group_members')
-        .insert({
-          group_id: group.id,
-          user_id: user.id,
-          role: 'admin'
-        })
-
-      if (memberError) {
-        console.error('Error adding creator to group:', memberError)
-        // Group was created but member addition failed
-        return NextResponse.json(
-          { error: 'Group created but failed to add you as a member' }, 
-          { status: 500 }
-        )
-      }
-    }
-
-    return NextResponse.json(group, { status: 201 })
-  } catch (error) {
-    console.error('Unexpected error in group creation:', error)
-    
-    if (error instanceof GroupServerError) {
-      return NextResponse.json(
-        { error: error.message }, 
-        { status: 400 }
-      )
-    }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    )
-  }
+  )
 }
 
-export async function GET(request: NextRequest) {
-  try {
-    // Use the server function to get groups
-    const groups = await getGroupsServer()
-    return NextResponse.json(groups, { status: 200 })
-  } catch (error) {
-    console.error('Unexpected error in fetching groups:', error)
-    
-    if (error instanceof GroupServerError) {
-      return NextResponse.json(
-        { error: error.message }, 
-        { status: 400 }
-      )
-    }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' }, 
-      { status: 500 }
-    )
+export async function POST(req: Request) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  console.log('Supabase user UID →', user?.id)
+  
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
   }
+  
+  const { name } = await req.json()
+  
+  const { data, error } = await supabase
+    .from('groups')
+    .insert({
+      name,
+      created_by: user.id,          // <-- required by RLS
+    })
+    .select()                       // return the inserted row
+  
+  if (error) {
+    // <-- detailed error handling (see point 5)
+    const payload = {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    }
+    console.error('Supabase insert error →', payload)
+    return new Response(JSON.stringify({ error: payload }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+  
+  return new Response(JSON.stringify(data), {
+    status: 201,
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+export async function GET(req: Request) {
+  const supabase = await createServerSupabaseClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  console.log('Supabase user UID →', user?.id)
+  
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Not authenticated' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  const { data, error } = await supabase
+    .from('groups')
+    .select('*')
+    .eq('created_by', user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    const payload = {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    }
+    console.error('Supabase fetch error →', payload)
+    return new Response(JSON.stringify({ error: payload }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+
+  return new Response(JSON.stringify(data || []), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' },
+  })
 }

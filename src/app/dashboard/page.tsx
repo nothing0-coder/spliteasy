@@ -2,7 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { PlusCircle, Users, Calendar, ArrowRight } from 'lucide-react'
-import { getGroupsServer, GroupServerError, type Group } from '@/features/groups/api'
+import { getGroupsServer, GroupServerError } from '@/features/groups/api-server'
+import { type Group } from '@/features/groups/api'
 
 export default async function DashboardPage() {
   let groups: Group[] = []

@@ -75,7 +75,7 @@ export interface Database {
             foreignKeyName: "expenses_paid_by_user_id_fkey"
             columns: ["paid_by_user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]
@@ -114,7 +114,7 @@ export interface Database {
             foreignKeyName: "group_members_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]
@@ -150,7 +150,7 @@ export interface Database {
             foreignKeyName: "expense_participants_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           }
         ]

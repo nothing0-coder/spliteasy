@@ -9,7 +9,6 @@ export interface GroupAnalyticsData {
     id: string
     amount: number
     description: string
-    category: string
     created_at: string
     paid_by_user_id: string
     payer_name: string
@@ -19,10 +18,6 @@ export interface GroupAnalyticsData {
     amount: number
   }>
   topSpenders: Array<{
-    name: string
-    amount: number
-  }>
-  categoryBreakdown: Array<{
     name: string
     amount: number
   }>
@@ -57,7 +52,6 @@ export async function getGroupAnalytics(groupId: string): Promise<GroupAnalytics
       id,
       amount,
       description,
-      category,
       created_at,
       paid_by_user_id,
       profiles!expenses_paid_by_user_id_fkey (
@@ -76,8 +70,7 @@ export async function getGroupAnalytics(groupId: string): Promise<GroupAnalytics
       totalSpent: 0,
       expenses: [],
       spendingTrends: [],
-      topSpenders: [],
-      categoryBreakdown: []
+      topSpenders: []
     }
   }
 
@@ -89,7 +82,6 @@ export async function getGroupAnalytics(groupId: string): Promise<GroupAnalytics
     id: expense.id,
     amount: expense.amount,
     description: expense.description,
-    category: expense.category || 'other',
     created_at: expense.created_at,
     paid_by_user_id: expense.paid_by_user_id,
     payer_name: (expense.profiles as any)?.full_name || 'Unknown'
@@ -125,24 +117,10 @@ export async function getGroupAnalytics(groupId: string): Promise<GroupAnalytics
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 10) // Top 10 spenders
 
-  // Calculate category breakdown
-  const spendingByCategory = new Map<string, number>()
-  
-  expenses.forEach(expense => {
-    const category = expense.category || 'other'
-    const current = spendingByCategory.get(category) || 0
-    spendingByCategory.set(category, current + expense.amount)
-  })
-
-  const categoryBreakdown = Array.from(spendingByCategory.entries())
-    .map(([name, amount]) => ({ name, amount }))
-    .sort((a, b) => b.amount - a.amount)
-
   return {
     totalSpent,
     expenses: processedExpenses,
     spendingTrends,
-    topSpenders,
-    categoryBreakdown
+    topSpenders
   }
 }

@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase/server'
+import { getSupabaseServerClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(
@@ -6,7 +6,7 @@ export async function GET(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const supabase = await createServerClient()
+    const supabase = await getSupabaseServerClient()
     const { groupId } = await params
     
     // Check authentication
@@ -70,7 +70,7 @@ export async function PUT(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const supabase = await createServerClient()
+    const supabase = await getSupabaseServerClient()
     const { groupId } = await params
     
     // Check authentication
@@ -140,7 +140,7 @@ export async function DELETE(
   { params }: { params: Promise<{ groupId: string }> }
 ) {
   try {
-    const supabase = await createServerClient()
+    const supabase = await getSupabaseServerClient()
     const { groupId } = await params
     
     // Check authentication

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createGroupServer, getGroupsServer, GroupServerError } from '@/features/groups/api/groups-server'
+import { createGroupServer, getGroupsServer, GroupServerError } from '@/features/groups/api-server'
 
 export async function POST(request: NextRequest) {
   try {

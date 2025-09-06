@@ -1,6 +1,16 @@
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/types/database.types'
 
+// Check if we should use mock implementation
+const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Import mock implementation if needed
+let mockApi: any = null
+if (USE_MOCK) {
+  console.warn('⚠️  Supabase not configured. Using mock implementation for groups API.')
+  mockApi = require('./groups-mock')
+}
+
 // Type definitions for better type safety
 type Group = Database['public']['Tables']['groups']['Row']
 type GroupInsert = Database['public']['Tables']['groups']['Insert']
@@ -45,9 +55,27 @@ const validateGroupId = (id: string): void => {
 
 // Helper to get current user ID with proper error handling
 const getCurrentUserId = async (): Promise<string> => {
+  // Check if Supabase is properly configured
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new GroupError(
+      'Supabase is not configured. Please check your environment variables.',
+      'CONFIG_ERROR',
+      {
+        hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      }
+    )
+  }
+
   const { data: { user }, error } = await supabase.auth.getUser()
   
   if (error) {
+    console.error('Auth error details:', {
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint
+    })
     throw new GroupError('Failed to get current user', 'AUTH_ERROR', error)
   }
   
@@ -58,60 +86,32 @@ const getCurrentUserId = async (): Promise<string> => {
   return user.id
 }
 
-/**
- * Creates a new group with the specified name.
- * The current user automatically becomes the creator of the group.
- * 
- * @param name - The name of the group (required, max 100 chars)
- * @returns Promise<Group> - The created group object
- * @throws GroupError - For validation errors, auth errors, or database errors
- */
-export const createGroup = async (
-  name: string
-): Promise<Group> => {
-  try {
-    // Input validation
-    validateGroupName(name)
-    
-    // Get current user
-    const ownerId = await getCurrentUserId()
-    
-    // Prepare insert data
-    const insertData: GroupInsert = {
-      name: name.trim(),
-      created_by: ownerId
-    }
-    
-    // Insert group with optimized query
-    const { data, error } = await supabase
-      .from('groups')
-      .insert(insertData)
-      .select('*')
-      .single()
-    
-    if (error) {
-      // Handle specific database errors
-      if (error.code === '23505') {
-        throw new GroupError('A group with this name already exists', 'DUPLICATE_NAME', error)
-      }
-      if (error.code === '23503') {
-        throw new GroupError('Invalid user reference', 'INVALID_USER', error)
-      }
-      throw new GroupError('Failed to create group', 'DATABASE_ERROR', error)
-    }
-    
-    if (!data) {
-      throw new GroupError('Group was not created', 'NO_DATA_RETURNED')
-    }
-    
-    return data
-  } catch (error) {
-    // Re-throw GroupError instances, wrap others
-    if (error instanceof GroupError) {
-      throw error
-    }
-    throw new GroupError('Unexpected error creating group', 'UNEXPECTED_ERROR', error)
+export async function createGroup(name: string) {
+  // Use mock implementation if Supabase is not configured
+  if (USE_MOCK && mockApi) {
+    return mockApi.createGroup(name)
   }
+
+  // 1️⃣  Get the current session (auth.uid())
+  const { data: { session }, error: sessErr } = await supabase.auth.getSession()
+  if (sessErr) throw sessErr
+  if (!session) throw new Error('User not authenticated')
+  
+  // 2️⃣  Insert, **including** created_by
+  const { data, error } = await supabase
+    .from('groups')
+    .insert({
+      name,
+      created_by: session.user.id      // <-- mandatory for the RLS policy
+    })
+    .select()          // return the newly created row
+  
+  if (error) {
+    console.error('❌ Insert failed:', error)
+    throw error
+  }
+  
+  return data[0]       // the freshly created group
 }
 
 /**
@@ -122,6 +122,11 @@ export const createGroup = async (
  * @throws GroupError - For auth errors or database errors
  */
 export const getGroups = async (): Promise<Group[]> => {
+  // Use mock implementation if Supabase is not configured
+  if (USE_MOCK && mockApi) {
+    return mockApi.getGroups()
+  }
+
   try {
     // Get current user
     const ownerId = await getCurrentUserId()
