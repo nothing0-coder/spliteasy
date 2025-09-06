@@ -66,11 +66,10 @@ CREATE POLICY "Users can delete groups they created" ON public.groups
     TO authenticated
     USING (created_by = auth.uid());
 
--- Add a temporary debugging policy (remove after testing)
--- This allows all inserts temporarily for debugging
-CREATE POLICY "groups_debug_insert" ON public.groups
-    FOR INSERT TO authenticated
-    WITH CHECK (true);
+-- REMOVED: Temporary debugging policy for production security
+-- CREATE POLICY "groups_debug_insert" ON public.groups
+--     FOR INSERT TO authenticated
+--     WITH CHECK (true);
 
 -- Grant necessary permissions
 GRANT ALL ON public.groups TO authenticated;
