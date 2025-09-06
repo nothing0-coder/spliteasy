@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase/client'
 import type { Database } from '@/types/database.types'
+// Import the secure createGroup function
+import { createGroupSecure } from './create-group-secure'
 
 // Check if we should use mock implementation
 const USE_MOCK = !process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -52,7 +54,6 @@ const validateGroupId = (id: string): void => {
   }
 }
 
-
 // Helper to get current user ID with proper error handling
 const getCurrentUserId = async (): Promise<string> => {
   // Check if Supabase is properly configured
@@ -86,32 +87,40 @@ const getCurrentUserId = async (): Promise<string> => {
   return user.id
 }
 
-export async function createGroup(name: string) {
+/**
+ * Creates a new group using the secure implementation.
+ * This replaces the old createGroup function with the secure version.
+ * 
+ * @param name - The name of the group to create
+ * @param description - Optional description for the group
+ * @returns Promise<Group> - The created group object
+ * @throws GroupError - For authentication, validation, or database errors
+ */
+export async function createGroup(name: string, description?: string): Promise<Group> {
   // Use mock implementation if Supabase is not configured
   if (USE_MOCK && mockApi) {
     return mockApi.createGroup(name)
   }
 
-  // 1️⃣  Get the current session (auth.uid())
-  const { data: { session }, error: sessErr } = await supabase.auth.getSession()
-  if (sessErr) throw sessErr
-  if (!session) throw new Error('User not authenticated')
-  
-  // 2️⃣  Insert, **including** created_by
-  const { data, error } = await supabase
-    .from('groups')
-    .insert({
-      name,
-      created_by: session.user.id      // <-- mandatory for the RLS policy
-    })
-    .select()          // return the newly created row
-  
-  if (error) {
-    console.error('❌ Insert failed:', error)
+  // Use the secure implementation
+  try {
+    const result = await createGroupSecure(name)
+    // Convert to the expected Group format
+    const userId = await getCurrentUserId()
+    return {
+      id: result.groupId,
+      name: result.groupName,
+      description: description || null,
+      created_by: userId,
+      created_at: new Date().toISOString()
+    } as Group
+  } catch (error: any) {
+    // Re-throw as GroupError if it's not already
+    if (error.name === 'SecureGroupError') {
+      throw new GroupError(error.message, error.code, error.details)
+    }
     throw error
   }
-  
-  return data[0]       // the freshly created group
 }
 
 /**
@@ -200,13 +209,13 @@ export const getGroupById = async (id: string): Promise<Group> => {
  * Only the group creator can update the group.
  * 
  * @param id - The UUID of the group to update
- * @param updates - Partial object with name to update
+ * @param updates - Partial object with name and/or description to update
  * @returns Promise<Group> - The updated group object
  * @throws GroupError - For validation errors, auth errors, or database errors
  */
 export const updateGroup = async (
   id: string, 
-  updates: Partial<{ name: string }>
+  updates: Partial<{ name: string; description: string }>
 ): Promise<Group> => {
   try {
     // Input validation
@@ -228,6 +237,9 @@ export const updateGroup = async (
     const updateData: GroupUpdate = {}
     if (updates.name !== undefined) {
       updateData.name = updates.name.trim()
+    }
+    if (updates.description !== undefined) {
+      updateData.description = updates.description.trim()
     }
     
     // Optimized update with ownership check
